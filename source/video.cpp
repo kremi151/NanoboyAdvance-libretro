@@ -22,13 +22,8 @@
 using namespace nba_libretro;
 
 NBACoreVideoDevice::NBACoreVideoDevice(uint32_t width, uint32_t height): width(width), height(height) {
-    //frameBuffer = (uint32_t*) calloc(width * height, sizeof(uint32_t));
     this->video_cb = nullptr;
-}
-
-NBACoreVideoDevice::~NBACoreVideoDevice() {
-    /*free(frameBuffer);
-    frameBuffer = nullptr;*/
+    this->log_cb = nullptr;
 }
 
 void NBACoreVideoDevice::Draw(uint32_t *buffer) {
@@ -36,9 +31,13 @@ void NBACoreVideoDevice::Draw(uint32_t *buffer) {
         // We're currently not in a render cycle of libretro
         return;
     }
-    video_cb(buffer, width, height, width * sizeof(short));
+    video_cb(buffer, width, height, width * sizeof(uint32_t));
 }
 
 void NBACoreVideoDevice::setVideoCallback(retro_video_refresh_t cb) {
     this->video_cb = cb;
+}
+
+void NBACoreVideoDevice::setLogCallback(retro_log_printf_t cb) {
+    this->log_cb = cb;
 }

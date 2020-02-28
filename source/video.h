@@ -30,14 +30,16 @@ namespace nba_libretro {
     private:
         const uint32_t width;
         const uint32_t height;
+        retro_log_printf_t log_cb;
         retro_video_refresh_t video_cb;
     public:
         NBACoreVideoDevice(uint32_t width, uint32_t height);
-        ~NBACoreVideoDevice() override;
 
         void Draw(std::uint32_t* buffer) override;
 
         void setVideoCallback(retro_video_refresh_t cb);
+
+        void setLogCallback(retro_log_printf_t cb);
     };
 
 }

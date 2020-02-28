@@ -41,8 +41,8 @@ std::shared_ptr<nba::Config> nbaConfig;
 std::unique_ptr<nba::Emulator> nbaEmulator;
 std::shared_ptr<nba_libretro::NBACoreVideoDevice> nbaVideoDevice;
 
-#define EMULATOR_DISPLAY_WIDTH 480
-#define EMULATOR_DISPLAY_HEIGHT 480
+#define EMULATOR_DISPLAY_WIDTH 240
+#define EMULATOR_DISPLAY_HEIGHT 160
 
 #define DEBUG_BIOS_PATH "D:\\Retro\\GBA\\bios\\gba_bios.bin"
 
@@ -107,26 +107,19 @@ extern "C" {
         float aspect = 3.0f / 2.0f;
         float sampling_rate = 30000.0f;
 
-        info->timing = (struct retro_system_timing) {
-                .fps = 60.0,
-                .sample_rate = sampling_rate,
-        };
+        info->timing.fps = 16777216.0 / 280896.0;
+        info->timing.sample_rate = sampling_rate;
 
-        info->geometry = (struct retro_game_geometry) {
-                .base_width   = EMULATOR_DISPLAY_WIDTH,
-                .base_height  = EMULATOR_DISPLAY_HEIGHT,
-                .max_width    = EMULATOR_DISPLAY_WIDTH,
-                .max_height   = EMULATOR_DISPLAY_HEIGHT,
-                .aspect_ratio = aspect,
-        };
+        info->geometry.base_width = EMULATOR_DISPLAY_WIDTH;
+        info->geometry.base_height = EMULATOR_DISPLAY_HEIGHT;
+        info->geometry.max_width = EMULATOR_DISPLAY_WIDTH;
+        info->geometry.max_height = EMULATOR_DISPLAY_HEIGHT;
+        info->geometry.aspect_ratio = aspect;
     }
 
     void retro_set_environment(retro_environment_t cb) {
         //TODO
         environ_cb = cb;
-
-        bool no_content = true;
-        cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_content);
 
         if (cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &logging))
             log_cb = logging.log;
@@ -167,6 +160,7 @@ extern "C" {
      * libretro callback; Called every game tick.
      */
     void retro_run(void) {
+        nbaVideoDevice->setLogCallback(log_cb);
         nbaVideoDevice->setVideoCallback(video_cb);
         nbaEmulator->Frame();
         nbaVideoDevice->setVideoCallback(nullptr);
@@ -176,6 +170,12 @@ extern "C" {
      * libretro callback; Called when a game is to be loaded.
      */
     bool retro_load_game(const struct retro_game_info *info) {
+        auto pixel_fmt = RETRO_PIXEL_FORMAT_XRGB8888;
+        if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &pixel_fmt)) {
+            log_cb(retro_log_level::RETRO_LOG_ERROR, "Required pixel format XRGB8888 is not supported\n");
+            return false;
+        }
+
         if (info == nullptr || info->path == nullptr || info->path[0] == '\0') {
             log_cb(retro_log_level::RETRO_LOG_ERROR, "No ROM path specified\n");
             return false;
