@@ -15,6 +15,9 @@ set(HEADERS
         source/libretro.h
         source/video.h)
 
+# Provide NBA umbrella headers
+include_directories("${CMAKE_SOURCE_DIR}/NanoboyAdvance/source")
+
 add_subdirectory(${CMAKE_SOURCE_DIR}/NanoboyAdvance)
 add_library(nba_libretro_core STATIC ${SOURCES} ${HEADERS})
 set_target_properties(nba_libretro_core PROPERTIES LINKER_LANGUAGE CXX)
