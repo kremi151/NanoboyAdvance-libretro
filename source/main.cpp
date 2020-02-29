@@ -24,12 +24,12 @@
 #include <math.h>
 #include <memory>
 #include "libretro.h"
-#include "../NanoboyAdvance/source/emulator/emulator.hpp"
-#include "../NanoboyAdvance/source/config/config.hpp"
-#include "../NanoboyAdvance/source/device/audio_device.hpp"
-#include "../NanoboyAdvance/source/device/input_device.hpp"
+#include <emulator/emulator.hpp>
+#include <config/config.hpp>
+#include <device/audio_device.hpp>
+#include <device/input_device.hpp>
 #include "video.h"
-// #include <emulator/emulator.hpp>
+#include "input.h"
 
 static struct retro_log_callback logging;
 static retro_log_printf_t log_cb;
@@ -40,6 +40,10 @@ static retro_log_printf_t log_cb;
 std::shared_ptr<nba::Config> nbaConfig;
 std::unique_ptr<nba::Emulator> nbaEmulator;
 std::shared_ptr<nba_libretro::NBACoreVideoDevice> nbaVideoDevice;
+std::shared_ptr<nba_libretro::NBACoreInputDevice> nbaInputDevice;
+
+unsigned current_controller_port;
+unsigned current_controller_device;
 
 #define EMULATOR_DISPLAY_WIDTH 240
 #define EMULATOR_DISPLAY_HEIGHT 160
@@ -61,7 +65,9 @@ extern "C" {
         nbaConfig = std::make_shared<nba::Config>();
 
         nbaConfig->audio_dev = std::make_shared<nba::NullAudioDevice>(); // TODO: Re-implement
-        nbaConfig->input_dev = std::make_shared<nba::NullInputDevice>(); // TODO: Re-implement
+
+        nbaInputDevice = std::make_shared<nba_libretro::NBACoreInputDevice>();
+        nbaConfig->input_dev = nbaInputDevice;
 
         nbaVideoDevice = std::make_shared<nba_libretro::NBACoreVideoDevice>(EMULATOR_DISPLAY_WIDTH, EMULATOR_DISPLAY_HEIGHT);
         nbaConfig->video_dev = nbaVideoDevice;
@@ -70,6 +76,9 @@ extern "C" {
         nbaConfig->bios_path = DEBUG_BIOS_PATH;
 
         nbaEmulator = std::make_unique<nba::Emulator>(nbaConfig);
+
+        current_controller_device = RETRO_DEVICE_JOYPAD;
+        current_controller_port = 0;
     }
 
     void retro_deinit(void) {
@@ -83,8 +92,11 @@ extern "C" {
     }
 
     void retro_set_controller_port_device(unsigned port, unsigned device) {
-        //TODO
         log_cb(RETRO_LOG_INFO, "Plugging device %u into port %u.\n", device, port);
+
+        // TODO: Filter supported devices (like JOYPAD or KEYBOARD)
+        //current_controller_port = port;
+        //current_controller_device = device;
     }
 
     void retro_get_system_info(struct retro_system_info *info) {
@@ -138,12 +150,10 @@ extern "C" {
     }
 
     void retro_set_input_poll(retro_input_poll_t cb) {
-        //TODO
         input_poll_cb = cb;
     }
 
     void retro_set_input_state(retro_input_state_t cb) {
-        //TODO
         input_state_cb = cb;
     }
 
@@ -160,10 +170,14 @@ extern "C" {
      * libretro callback; Called every game tick.
      */
     void retro_run(void) {
+        input_poll_cb();
+
         nbaVideoDevice->setLogCallback(log_cb);
         nbaVideoDevice->setVideoCallback(video_cb);
+        nbaInputDevice->setInputCallback(input_state_cb, current_controller_port, current_controller_device);
         nbaEmulator->Frame();
         nbaVideoDevice->setVideoCallback(nullptr);
+        nbaInputDevice->setInputCallback(nullptr, 0, 0);
     }
 
     /**
