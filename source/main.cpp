@@ -30,23 +30,27 @@
 #include <device/input_device.hpp>
 #include "video.h"
 #include "input.h"
+#include "audio.h"
+#include "common.h"
 
 static struct retro_log_callback logging;
 static retro_log_printf_t log_cb;
 
-//auto config = std::make_shared<nba::Config>();
-//auto emulator = std::make_unique<nba::Emulator>(config);
 
 std::shared_ptr<nba::Config> nbaConfig;
 std::unique_ptr<nba::Emulator> nbaEmulator;
 std::shared_ptr<nba_libretro::NBACoreVideoDevice> nbaVideoDevice;
 std::shared_ptr<nba_libretro::NBACoreInputDevice> nbaInputDevice;
+std::shared_ptr<nba_libretro::NBACoreAudioDevice> nbaAudioDevice;
+
+
+#ifdef NBA_LIBRETRO_ASYNC_AUDIO
+#include <thread>
+std::unique_ptr<std::thread> audioThread;
+#endif
 
 unsigned current_controller_port;
 unsigned current_controller_device;
-
-#define EMULATOR_DISPLAY_WIDTH 240
-#define EMULATOR_DISPLAY_HEIGHT 160
 
 #define DEBUG_BIOS_PATH "D:\\Retro\\GBA\\bios\\gba_bios.bin"
 
@@ -61,10 +65,20 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 
 extern "C" {
 
+    static retro_video_refresh_t video_cb;
+    static retro_audio_sample_t audio_cb;
+    static retro_audio_sample_batch_t audio_batch_cb;
+    static retro_environment_t environ_cb;
+    static retro_input_poll_t input_poll_cb;
+    static retro_input_state_t input_state_cb;
+
+    static bool nba_running = false;
+
     void retro_init(void) {
         nbaConfig = std::make_shared<nba::Config>();
 
-        nbaConfig->audio_dev = std::make_shared<nba::NullAudioDevice>(); // TODO: Re-implement
+        nbaAudioDevice = std::make_shared<nba_libretro::NBACoreAudioDevice>();
+        nbaConfig->audio_dev = nbaAudioDevice;
 
         nbaInputDevice = std::make_shared<nba_libretro::NBACoreInputDevice>();
         nbaConfig->input_dev = nbaInputDevice;
@@ -79,12 +93,19 @@ extern "C" {
 
         current_controller_device = RETRO_DEVICE_JOYPAD;
         current_controller_port = 0;
+
+        audio_cb = nullptr;
+        audio_batch_cb = nullptr;
     }
 
     void retro_deinit(void) {
         nbaConfig.reset();
         nbaEmulator.reset();
         nbaVideoDevice.reset();
+
+#ifdef NBA_LIBRETRO_ASYNC_AUDIO
+        audioThread.reset();
+#endif
     }
 
     unsigned retro_api_version(void) {
@@ -105,19 +126,12 @@ extern "C" {
         info->library_name = "NanoboyAdvance libretro Core";
         info->library_version = "0.0.1";
         info->need_fullpath = true;
-        info->valid_extensions = "bin|gba";
+        info->valid_extensions = "bin|gba|agb";
     }
-
-    static retro_video_refresh_t video_cb;
-    static retro_audio_sample_t audio_cb;
-    static retro_audio_sample_batch_t audio_batch_cb;
-    static retro_environment_t environ_cb;
-    static retro_input_poll_t input_poll_cb;
-    static retro_input_state_t input_state_cb;
 
     void retro_get_system_av_info(struct retro_system_av_info *info) {
         float aspect = 3.0f / 2.0f;
-        float sampling_rate = 30000.0f;
+        float sampling_rate = EMULATOR_AUDIO_SAMPLING_RATE;
 
         info->timing.fps = 16777216.0 / 280896.0;
         info->timing.sample_rate = sampling_rate;
@@ -130,7 +144,6 @@ extern "C" {
     }
 
     void retro_set_environment(retro_environment_t cb) {
-        //TODO
         environ_cb = cb;
 
         if (cb(RETRO_ENVIRONMENT_GET_LOG_INTERFACE, &logging))
@@ -140,12 +153,10 @@ extern "C" {
     }
 
     void retro_set_audio_sample(retro_audio_sample_t cb) {
-        //TODO
         audio_cb = cb;
     }
 
     void retro_set_audio_sample_batch(retro_audio_sample_batch_t cb) {
-        //TODO
         audio_batch_cb = cb;
     }
 
@@ -166,6 +177,15 @@ extern "C" {
         // Nothing needs to happen when the game is reset.
     }
 
+    void render_audio(retro_audio_sample_batch_t cb) {
+        const int16_t *stream;
+        int byte_len;
+
+        nbaAudioDevice->updateAndGetBuffer(&stream, &byte_len);
+
+        cb(stream, EMULATOR_AUDIO_BLOCK);
+    }
+
     /**
      * libretro callback; Called every game tick.
      */
@@ -175,7 +195,13 @@ extern "C" {
         nbaVideoDevice->setLogCallback(log_cb);
         nbaVideoDevice->setVideoCallback(video_cb);
         nbaInputDevice->setInputCallback(input_state_cb, current_controller_port, current_controller_device);
+
         nbaEmulator->Frame();
+
+#ifndef NBA_LIBRETRO_ASYNC_AUDIO
+        render_audio(audio_batch_cb);
+#endif
+
         nbaVideoDevice->setVideoCallback(nullptr);
         nbaInputDevice->setInputCallback(nullptr, 0, 0);
     }
@@ -214,18 +240,38 @@ extern "C" {
                 return false;
             }
             case nba::Emulator::StatusCode::Ok: {
-                return true;
+                break;
             }
             default: {
                 log_cb(retro_log_level::RETRO_LOG_ERROR, "An unexpected error occurred\n");
                 return false;
             }
         }
+
+        nba_running = true;
+
+#ifdef NBA_LIBRETRO_ASYNC_AUDIO
+        audioThread = std::make_unique<std::thread>([]() {
+            while (nba_running) {
+                auto local_audio_cb = audio_batch_cb;
+                if (local_audio_cb == nullptr) {
+                    // Skip
+                    continue;
+                }
+                render_audio(local_audio_cb);
+            }
+        });
+#endif
+
+        return true;
     }
 
     void retro_unload_game(void) {
-        //TODO
-        // Nothing needs to happen when the game unloads.
+        nba_running = false;
+
+#ifdef NBA_LIBRETRO_ASYNC_AUDIO
+        audioThread->join();
+#endif
     }
 
     unsigned retro_get_region(void) {

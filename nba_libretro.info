@@ -1,6 +1,6 @@
 display_name = "NanoboyAdvance"
 authors = "fleroviux, kremi151"
-supported_extensions = "gba|bin"
+supported_extensions = "gba|bin|agb"
 corename = "NanoboyAdvance"
 manufacturer = "Nintendo"
 categories = "Emulator"
