@@ -129,9 +129,8 @@ extern "C" {
     }
 
     void retro_get_system_info(struct retro_system_info *info) {
-        //TODO
         memset(info, 0, sizeof(*info));
-        info->library_name = "NanoboyAdvance libretro Core";
+        info->library_name = "NanoboyAdvance";
         info->library_version = "0.0.1";
         info->need_fullpath = true;
         info->valid_extensions = "bin|gba|agb";
