@@ -179,8 +179,14 @@ extern "C" {
     }
 
     void retro_reset(void) {
-        //TODO
-        // Nothing needs to happen when the game is reset.
+        if (nbaEmulator) {
+            nbaEmulator->Reset();
+        }
+#ifdef NBA_LIBRETRO_LIMIT_FRAMES
+        if (frameLimiter) {
+            frameLimiter->Reset();
+        }
+#endif
     }
 
     void render_audio(retro_audio_sample_batch_t cb) {
