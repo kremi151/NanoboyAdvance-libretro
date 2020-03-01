@@ -48,6 +48,7 @@ std::shared_ptr<nba_libretro::NBACoreAudioDevice> nbaAudioDevice;
 #include <thread>
 std::unique_ptr<std::thread> audioThread;
 static bool nba_audio_running = false;
+static bool nba_audio_new_frame = false;
 #endif
 
 #ifdef NBA_LIBRETRO_LIMIT_FRAMES
@@ -193,9 +194,24 @@ extern "C" {
         const int16_t *stream;
         int byte_len;
 
+#ifdef NBA_LIBRETRO_ASYNC_AUDIO
+        if (!nba_audio_new_frame) {
+            return;
+        }
+#endif
         nbaAudioDevice->updateAndGetBuffer(&stream, &byte_len);
+#ifdef NBA_LIBRETRO_ASYNC_AUDIO
+        nba_audio_new_frame = false;
+#endif
 
         cb(stream, EMULATOR_AUDIO_BLOCK);
+    }
+
+    void render_frame() {
+        nbaEmulator->Frame();
+#ifdef NBA_LIBRETRO_ASYNC_AUDIO
+        nba_audio_new_frame = true;
+#endif
     }
 
     /**
@@ -210,12 +226,12 @@ extern "C" {
 
 #ifdef NBA_LIBRETRO_LIMIT_FRAMES
         frameLimiter->Run([&] {
-            nbaEmulator->Frame();
+            render_frame();
         }, [&](int) {
             // Allows to display current FPS somewhere
         });
 #else
-        nbaEmulator->Frame();
+        render_frame();
 #endif
 
 #ifndef NBA_LIBRETRO_ASYNC_AUDIO
