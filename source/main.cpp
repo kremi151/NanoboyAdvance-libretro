@@ -47,6 +47,7 @@ std::shared_ptr<nba_libretro::NBACoreAudioDevice> nbaAudioDevice;
 #ifdef NBA_LIBRETRO_ASYNC_AUDIO
 #include <thread>
 std::unique_ptr<std::thread> audioThread;
+static bool nba_audio_running = false;
 #endif
 
 #ifdef NBA_LIBRETRO_LIMIT_FRAMES
@@ -74,8 +75,6 @@ extern "C" {
     static retro_environment_t environ_cb;
     static retro_input_poll_t input_poll_cb;
     static retro_input_state_t input_state_cb;
-
-    static bool nba_running = false;
 
     void retro_init(void) {
         nbaConfig = std::make_shared<nba::Config>();
@@ -289,28 +288,28 @@ extern "C" {
             }
         }
 
-        nba_running = true;
-
 #ifdef NBA_LIBRETRO_ASYNC_AUDIO
-        audioThread = std::make_unique<std::thread>([]() {
-            while (nba_running) {
-                auto local_audio_cb = audio_batch_cb;
-                if (local_audio_cb == nullptr) {
-                    // Skip
-                    continue;
+        if (!nba_audio_running) {
+            nba_audio_running = true;
+            audioThread = std::make_unique<std::thread>([]() {
+                while (nba_audio_running) {
+                    auto local_audio_cb = audio_batch_cb;
+                    if (local_audio_cb == nullptr) {
+                        // Skip
+                        continue;
+                    }
+                    render_audio(local_audio_cb);
                 }
-                render_audio(local_audio_cb);
-            }
-        });
+            });
+        }
 #endif
 
         return true;
     }
 
     void retro_unload_game(void) {
-        nba_running = false;
-
 #ifdef NBA_LIBRETRO_ASYNC_AUDIO
+        nba_audio_running = false;
         audioThread->join();
 #endif
     }
