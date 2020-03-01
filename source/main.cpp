@@ -32,6 +32,7 @@
 #include "input.h"
 #include "audio.h"
 #include "common.h"
+#include "fshelper.h"
 
 static struct retro_log_callback logging;
 static retro_log_printf_t log_cb;
@@ -42,7 +43,6 @@ std::unique_ptr<nba::Emulator> nbaEmulator;
 std::shared_ptr<nba_libretro::NBACoreVideoDevice> nbaVideoDevice;
 std::shared_ptr<nba_libretro::NBACoreInputDevice> nbaInputDevice;
 std::shared_ptr<nba_libretro::NBACoreAudioDevice> nbaAudioDevice;
-
 
 #ifdef NBA_LIBRETRO_ASYNC_AUDIO
 #include <thread>
@@ -56,8 +56,6 @@ std::unique_ptr<common::Framelimiter> frameLimiter;
 
 unsigned current_controller_port;
 unsigned current_controller_device;
-
-#define DEBUG_BIOS_PATH "D:\\Retro\\GBA\\bios\\gba_bios.bin"
 
 static void fallback_log(enum retro_log_level level, const char *fmt, ...)
 {
@@ -90,9 +88,6 @@ extern "C" {
 
         nbaVideoDevice = std::make_shared<nba_libretro::NBACoreVideoDevice>(EMULATOR_DISPLAY_WIDTH, EMULATOR_DISPLAY_HEIGHT);
         nbaConfig->video_dev = nbaVideoDevice;
-
-        // TODO: Make configurable
-        nbaConfig->bios_path = DEBUG_BIOS_PATH;
 
         nbaEmulator = std::make_unique<nba::Emulator>(nbaConfig);
 
@@ -231,6 +226,32 @@ extern "C" {
      * libretro callback; Called when a game is to be loaded.
      */
     bool retro_load_game(const struct retro_game_info *info) {
+        std::string biosLookupPaths[2];
+
+        const char *systemDir = nullptr;
+        if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &systemDir)) {
+            biosLookupPaths[0] = nba_libretro::concatPaths(std::string(systemDir), "NanoboyAdvance");
+            nba_libretro::ensureDirExists(biosLookupPaths[0]);
+        } else {
+            biosLookupPaths[0] = std::string();
+        }
+
+        const char *homeFolder = getenv("HOME");
+        log_cb(retro_log_level::RETRO_LOG_INFO, "Home folder: %s\n", homeFolder);
+        if (homeFolder != nullptr && strlen(homeFolder) > 0) {
+            biosLookupPaths[1] = nba_libretro::concatPaths(std::string(homeFolder), ".NanoboyAdvance");
+            nba_libretro::ensureDirExists(biosLookupPaths[1]);
+        } else {
+            biosLookupPaths[1] = std::string();
+        }
+
+        std::string biosPath = nba_libretro::findFirstMatchingFile("gba_bios.bin", biosLookupPaths, 2);
+        if (biosPath.empty()) {
+            log_cb(retro_log_level::RETRO_LOG_ERROR, "No bios found\n");
+            return false;
+        }
+        nbaConfig->bios_path = biosPath;
+
         auto pixel_fmt = RETRO_PIXEL_FORMAT_XRGB8888;
         if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &pixel_fmt)) {
             log_cb(retro_log_level::RETRO_LOG_ERROR, "Required pixel format XRGB8888 is not supported\n");

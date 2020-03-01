@@ -36,7 +36,8 @@ set(SOURCES
         source/main.cpp
         source/video.cpp
 		source/input.cpp
-		source/audio.cpp)
+		source/audio.cpp
+		source/fshelper.cpp)
 
 set(HEADERS
         # libretro
@@ -44,7 +45,8 @@ set(HEADERS
         source/video.h
 		source/input.h
 		source/audio.h
-		source/common.h)
+		source/common.h
+		source/fshelper.h)
 
 # Provide NBA umbrella headers
 include_directories("${CMAKE_SOURCE_DIR}/NanoboyAdvance/source")

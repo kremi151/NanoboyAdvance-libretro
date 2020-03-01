@@ -16,23 +16,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef NANOBOYADVANCE_LIBRETRO_CORE_COMMON_H
-#define NANOBOYADVANCE_LIBRETRO_CORE_COMMON_H
+#ifndef NANOBOYADVANCE_LIBRETRO_CORE_FSHELPER_H
+#define NANOBOYADVANCE_LIBRETRO_CORE_FSHELPER_H
 
-#define EMULATOR_DISPLAY_WIDTH 240
-#define EMULATOR_DISPLAY_HEIGHT 160
-#define EMULATOR_AUDIO_SAMPLING_RATE 32768
-#define EMULATOR_AUDIO_BLOCK 2048
+#include <string>
 
-#define NBA_LIBRETRO_ASYNC_AUDIO
-#define NBA_LIBRETRO_LIMIT_FRAMES
+namespace nba_libretro {
 
-#if defined(_WIN32) || defined(WIN32) || defined(_WIN64) || defined(WIN64)
-#define OS_Windows
-#elif defined(__unix__)
-#define OS_Unix
-#else
-#error "This platform is currently not supported"
-#endif
+    std::string concatPaths(const std::string &p1, const std::string &p2);
 
-#endif //NANOBOYADVANCE_LIBRETRO_CORE_COMMON_H
+    std::string findFirstMatchingFile(const std::string &name, const std::string *paths, size_t len);
+
+    bool ensureDirExists(const std::string &path);
+
+}
+
+#endif //NANOBOYADVANCE_LIBRETRO_CORE_FSHELPER_H
