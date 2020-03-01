@@ -49,6 +49,11 @@ std::shared_ptr<nba_libretro::NBACoreAudioDevice> nbaAudioDevice;
 std::unique_ptr<std::thread> audioThread;
 #endif
 
+#ifdef NBA_LIBRETRO_LIMIT_FRAMES
+#include <common/framelimiter.hpp>
+std::unique_ptr<common::Framelimiter> frameLimiter;
+#endif
+
 unsigned current_controller_port;
 unsigned current_controller_device;
 
@@ -91,6 +96,11 @@ extern "C" {
 
         nbaEmulator = std::make_unique<nba::Emulator>(nbaConfig);
 
+#ifdef NBA_LIBRETRO_LIMIT_FRAMES
+        frameLimiter = std::make_unique<common::Framelimiter>(59.7275);
+        frameLimiter->Reset();
+#endif
+
         current_controller_device = RETRO_DEVICE_JOYPAD;
         current_controller_port = 0;
 
@@ -105,6 +115,9 @@ extern "C" {
 
 #ifdef NBA_LIBRETRO_ASYNC_AUDIO
         audioThread.reset();
+#endif
+#ifdef NBA_LIBRETRO_LIMIT_FRAMES
+        frameLimiter.reset();
 #endif
     }
 
@@ -196,7 +209,15 @@ extern "C" {
         nbaVideoDevice->setVideoCallback(video_cb);
         nbaInputDevice->setInputCallback(input_state_cb, current_controller_port, current_controller_device);
 
+#ifdef NBA_LIBRETRO_LIMIT_FRAMES
+        frameLimiter->Run([&] {
+            nbaEmulator->Frame();
+        }, [&](int) {
+            // Allows to display current FPS somewhere
+        });
+#else
         nbaEmulator->Frame();
+#endif
 
 #ifndef NBA_LIBRETRO_ASYNC_AUDIO
         render_audio(audio_batch_cb);
