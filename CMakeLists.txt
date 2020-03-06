@@ -46,10 +46,29 @@ set(HEADERS
         source/io/input.h
         source/io/audio.h
 		source/util/common.h
-		source/util/fshelper.h)
+		source/util/fshelper.h
+		source/meta/nba_libretro_defs.h)
 
 # Provide NBA umbrella headers
 include_directories("${CMAKE_SOURCE_DIR}/NanoboyAdvance/source")
+
+# Read core name from nba_libretro_defs.h
+set(TMP_REGEX "#define NBA_LIBRETRO_CORE_NAME[ \t]+\"(.+)\"")
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/source/meta/nba_libretro_defs.h" NBA_LIBRETRO_CORE_NAME REGEX ${TMP_REGEX})
+string(REGEX REPLACE ${TMP_REGEX} "\\1" NBA_LIBRETRO_CORE_NAME "${NBA_LIBRETRO_CORE_NAME}")
+
+# Read core version from nba_libretro_defs.h
+set(TMP_REGEX "#define NBA_LIBRETRO_CORE_VERSION[ \t]+\"(.+)\"")
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/source/meta/nba_libretro_defs.h" NBA_LIBRETRO_CORE_VERSION REGEX ${TMP_REGEX})
+string(REGEX REPLACE ${TMP_REGEX} "\\1" NBA_LIBRETRO_CORE_VERSION "${NBA_LIBRETRO_CORE_VERSION}")
+
+# Read supported file extensions from nba_libretro_defs.h
+set(TMP_REGEX "#define NBA_LIBRETRO_CORE_FILE_EXTS[ \t]+\"(.+)\"")
+file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/source/meta/nba_libretro_defs.h" NBA_LIBRETRO_CORE_FILE_EXTS REGEX ${TMP_REGEX})
+string(REGEX REPLACE ${TMP_REGEX} "\\1" NBA_LIBRETRO_CORE_FILE_EXTS "${NBA_LIBRETRO_CORE_FILE_EXTS}")
+
+# Write nba_libretro.info in build directory
+configure_file(source/meta/nba_libretro.info.in ${CMAKE_BINARY_DIR}/nba_libretro.info @ONLY)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/NanoboyAdvance)
 add_library(nba_libretro SHARED ${SOURCES} ${HEADERS})

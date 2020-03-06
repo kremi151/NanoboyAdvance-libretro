@@ -33,6 +33,7 @@
 #include "io/audio.h"
 #include "util/common.h"
 #include "util/fshelper.h"
+#include "meta/nba_libretro_defs.h"
 
 static struct retro_log_callback logging;
 static retro_log_printf_t log_cb;
@@ -130,10 +131,10 @@ extern "C" {
 
     void retro_get_system_info(struct retro_system_info *info) {
         memset(info, 0, sizeof(*info));
-        info->library_name = "NanoboyAdvance";
-        info->library_version = "0.0.1";
+        info->library_name = NBA_LIBRETRO_CORE_NAME;
+        info->library_version = NBA_LIBRETRO_CORE_VERSION;
         info->need_fullpath = true;
-        info->valid_extensions = "bin|gba|agb";
+        info->valid_extensions = NBA_LIBRETRO_CORE_FILE_EXTS;
     }
 
     void retro_get_system_av_info(struct retro_system_av_info *info) {
