@@ -16,32 +16,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef NANOBOYADVANCE_LIBRETRO_CORE_VIDEO_H
-#define NANOBOYADVANCE_LIBRETRO_CORE_VIDEO_H
+#ifndef NANOBOYADVANCE_LIBRETRO_CORE_INPUT_H
+#define NANOBOYADVANCE_LIBRETRO_CORE_INPUT_H
 
-#include <emulator/device/video_device.hpp>
-#include "libretro.h"
-
-#include <cstdint>
+#include <emulator/device/input_device.hpp>
+#include "../util/libretro.h"
 
 namespace nba_libretro {
 
-    class NBACoreVideoDevice: public nba::VideoDevice {
+    class NBACoreInputDevice: public nba::InputDevice {
     private:
-        const uint32_t width;
-        const uint32_t height;
-        retro_log_printf_t log_cb;
-        retro_video_refresh_t video_cb;
+        retro_input_state_t input_state_cb;
+        unsigned controller_device;
+        unsigned controller_port;
     public:
-        NBACoreVideoDevice(uint32_t width, uint32_t height);
+        auto Poll(Key key) -> bool override;
 
-        void Draw(std::uint32_t* buffer) override;
-
-        void setVideoCallback(retro_video_refresh_t cb);
-
-        void setLogCallback(retro_log_printf_t cb);
+        void setInputCallback(retro_input_state_t cb, unsigned port, unsigned device);
     };
 
 }
 
-#endif //NANOBOYADVANCE_LIBRETRO_CORE_VIDEO_H
+#endif //NANOBOYADVANCE_LIBRETRO_CORE_INPUT_H

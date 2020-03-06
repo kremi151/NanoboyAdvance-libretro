@@ -18,7 +18,7 @@
 
 #include <cstdlib>
 #include "audio.h"
-#include "common.h"
+#include "../util/common.h"
 
 using namespace nba_libretro;
 

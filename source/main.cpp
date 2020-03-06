@@ -23,16 +23,16 @@
 #include <string.h>
 #include <math.h>
 #include <memory>
-#include "libretro.h"
+#include "util/libretro.h"
 #include <emulator/emulator.hpp>
 #include <emulator/config/config.hpp>
 #include <emulator/device/audio_device.hpp>
 #include <emulator/device/input_device.hpp>
-#include "video.h"
-#include "input.h"
-#include "audio.h"
-#include "common.h"
-#include "fshelper.h"
+#include "io/video.h"
+#include "io/input.h"
+#include "io/audio.h"
+#include "util/common.h"
+#include "util/fshelper.h"
 
 static struct retro_log_callback logging;
 static retro_log_printf_t log_cb;

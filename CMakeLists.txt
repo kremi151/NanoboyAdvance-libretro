@@ -34,19 +34,19 @@ option(PLATFORM_SDL "Enable SDL2 frontend" OFF)
 set(SOURCES
         # Core source
         source/main.cpp
-        source/video.cpp
-		source/input.cpp
-		source/audio.cpp
-		source/fshelper.cpp)
+        source/io/video.cpp
+        source/io/input.cpp
+        source/io/audio.cpp
+		source/util/fshelper.cpp)
 
 set(HEADERS
         # libretro
-        source/libretro.h
-        source/video.h
-		source/input.h
-		source/audio.h
-		source/common.h
-		source/fshelper.h)
+		source/util/libretro.h
+        source/io/video.h
+        source/io/input.h
+        source/io/audio.h
+		source/util/common.h
+		source/util/fshelper.h)
 
 # Provide NBA umbrella headers
 include_directories("${CMAKE_SOURCE_DIR}/NanoboyAdvance/source")
