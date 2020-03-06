@@ -19,7 +19,7 @@
 #ifndef NANOBOYADVANCE_LIBRETRO_CORE_INPUT_H
 #define NANOBOYADVANCE_LIBRETRO_CORE_INPUT_H
 
-#include <device/input_device.hpp>
+#include <emulator/device/input_device.hpp>
 #include "libretro.h"
 
 namespace nba_libretro {

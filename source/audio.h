@@ -19,7 +19,7 @@
 #ifndef NANOBOYADVANCE_LIBRETRO_CORE_AUDIO_H
 #define NANOBOYADVANCE_LIBRETRO_CORE_AUDIO_H
 
-#include <device/audio_device.hpp>
+#include <emulator/device/audio_device.hpp>
 
 namespace nba_libretro {
 

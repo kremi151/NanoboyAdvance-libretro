@@ -19,7 +19,7 @@
 #ifndef NANOBOYADVANCE_LIBRETRO_CORE_VIDEO_H
 #define NANOBOYADVANCE_LIBRETRO_CORE_VIDEO_H
 
-#include <device/video_device.hpp>
+#include <emulator/device/video_device.hpp>
 #include "libretro.h"
 
 #include <cstdint>

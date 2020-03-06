@@ -25,9 +25,9 @@
 #include <memory>
 #include "libretro.h"
 #include <emulator/emulator.hpp>
-#include <config/config.hpp>
-#include <device/audio_device.hpp>
-#include <device/input_device.hpp>
+#include <emulator/config/config.hpp>
+#include <emulator/device/audio_device.hpp>
+#include <emulator/device/input_device.hpp>
 #include "video.h"
 #include "input.h"
 #include "audio.h"
