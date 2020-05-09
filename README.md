@@ -40,3 +40,18 @@ cd cmake-build-release
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make nba_libretro
 ```
+
+### Installation
+
+This requires having followed the compilation guide.
+You should have got a compiled `nba_libretro.dll (Windows)` or `nba_libretro.so (Linux)` binary and a generated `nba_libretro.info` file.
+
+#### Linux
+
+Copy the `nba_libretro.so` binary to `~/.config/retroarch/cores`\
+Copy the `nba_libretro.info` file to `~/.config/retroarch/info`
+
+#### Windows
+
+Copy the `nba_libretro.dll` binary to `%APPDATA%\RetroArch\cores`\
+Copy the `nba_libretro.info` file to `%APPDATA%\RetroArch\info`

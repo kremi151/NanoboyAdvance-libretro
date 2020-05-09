@@ -73,5 +73,6 @@ configure_file(source/meta/nba_libretro.info.in ${CMAKE_BINARY_DIR}/nba_libretro
 add_subdirectory(${CMAKE_SOURCE_DIR}/NanoboyAdvance)
 add_library(nba_libretro SHARED ${SOURCES} ${HEADERS})
 set_target_properties(nba_libretro PROPERTIES LINKER_LANGUAGE CXX)
+set_target_properties(nba_libretro PROPERTIES PREFIX "") # no "lib" prefix for built binary on Linux
 
 target_link_libraries(nba_libretro nba)
