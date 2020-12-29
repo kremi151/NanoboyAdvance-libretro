@@ -1,16 +1,13 @@
-name: Build core
+name: Build
 
 on:
   push:
     branches: [ master ]
-    paths:
-      - 'source/**'
-      - 'NanoboyAdvance/**'
   pull_request:
     branches: [ master ]
 
 jobs:
-  build-core:
+  build:
     runs-on: ${{ matrix.config.os }}
     strategy:
         fail-fast: false
