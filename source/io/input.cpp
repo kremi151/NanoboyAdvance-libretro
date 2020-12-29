@@ -50,6 +50,11 @@ auto NBACoreInputDevice::Poll(nba::InputDevice::Key key) -> bool {
     }
 }
 
+void NBACoreInputDevice::SetOnChangeCallback(std::function<void ()> callback) {
+    // No-op
+    (void)callback;
+}
+
 void NBACoreInputDevice::setInputCallback(retro_input_state_t cb, unsigned port, unsigned device) {
     this->input_state_cb = cb;
     this->controller_port = port;

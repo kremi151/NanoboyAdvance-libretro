@@ -31,6 +31,7 @@ namespace nba_libretro {
         unsigned controller_port;
     public:
         auto Poll(Key key) -> bool override;
+        void SetOnChangeCallback(std::function<void(void)> callback) override;
 
         void setInputCallback(retro_input_state_t cb, unsigned port, unsigned device);
     };
