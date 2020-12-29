@@ -15,12 +15,15 @@ jobs:
             config:
               - os: ubuntu-latest
                 generator: Ninja
+                cmake_args: ""
                 artifact: nba-libretro_linux
               - os: macos-latest
                 generator: Ninja
+                cmake_args: ""
                 artifact: nba-libretro_macOS
               - os: windows-latest
                 generator: VS16Win64
+                cmake_args: "-T clangcl"
                 artifact: nba-libretro_windows
     steps:
       - name: Checkout
@@ -30,9 +33,10 @@ jobs:
       - name: run-cmake
         uses: lukka/run-cmake@v2.5
         with:
+          cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
           cmakeListsTxtPath: "${{ github.workspace }}/CMakeLists.txt"
           cmakeGenerator: ${{ matrix.config.generator }}
-          cmakeBuildType: Release
+          cmakeAppendedArgs: "-DCMAKE_BUILD_TYPE=Release ${{ matrix.config.cmake_args }}"
           buildDirectory: "${{ github.workspace }}/cmake-build"
       - name: Upload artifact
         uses: actions/upload-artifact@v2
