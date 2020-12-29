@@ -16,15 +16,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef NANOBOYADVANCE_LIBRETRO_CORE_COMMON_H
-#define NANOBOYADVANCE_LIBRETRO_CORE_COMMON_H
+#ifndef FB_CORE_INCLUDE_HELPER_FS_H
+#define FB_CORE_INCLUDE_HELPER_FS_H
 
-#define EMULATOR_DISPLAY_WIDTH 240
-#define EMULATOR_DISPLAY_HEIGHT 160
-#define EMULATOR_AUDIO_SAMPLING_RATE 32768
-#define EMULATOR_AUDIO_BLOCK 2048
+#if STD_FS_IS_EXPERIMENTAL
 
-#define NBA_LIBRETRO_ASYNC_AUDIO
-#define NBA_LIBRETRO_LIMIT_FRAMES
+#include <experimental/filesystem>
 
-#endif //NANOBOYADVANCE_LIBRETRO_CORE_COMMON_H
+namespace nba_libretro {
+    namespace fs = std::experimental::filesystem;
+}
+
+#else
+
+#include <filesystem>
+
+namespace nba_libretro {
+    namespace fs = std::filesystem;
+}
+
+#endif
+
+#endif //FB_CORE_INCLUDE_HELPER_FS_H

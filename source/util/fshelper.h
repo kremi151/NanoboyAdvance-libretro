@@ -20,14 +20,13 @@
 #define NANOBOYADVANCE_LIBRETRO_CORE_FSHELPER_H
 
 #include <string>
+#include "fs.h"
 
 namespace nba_libretro {
 
-    std::string concatPaths(const std::string &p1, const std::string &p2);
+    fs::path findFirstMatchingFile(const std::string &name, const fs::path *paths, size_t len);
 
-    std::string findFirstMatchingFile(const std::string &name, const std::string *paths, size_t len);
-
-    bool ensureDirExists(const std::string &path);
+    bool ensureDirExists(const fs::path &path);
 
 }
 

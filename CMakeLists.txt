@@ -1,7 +1,9 @@
 project(NanoboyAdvance-libretro-core CXX)
 cmake_minimum_required(VERSION 3.13.0)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake-common)
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
@@ -46,6 +48,7 @@ set(HEADERS
         source/io/input.h
         source/io/audio.h
 		source/util/common.h
+		source/util/fs.h
 		source/util/fshelper.h
 		source/meta/nba_libretro_defs.h)
 
@@ -71,10 +74,13 @@ string(REGEX REPLACE ${TMP_REGEX} "\\1" NBA_LIBRETRO_CORE_FILE_EXTS "${NBA_LIBRE
 configure_file(source/meta/nba_libretro.info.in ${CMAKE_BINARY_DIR}/nba_libretro.info @ONLY)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/NanoboyAdvance)
+
+find_package(Filesystem REQUIRED)
+
 add_library(nba_libretro SHARED ${SOURCES} ${HEADERS})
 set_target_properties(nba_libretro PROPERTIES LINKER_LANGUAGE CXX)
 set_target_properties(nba_libretro PROPERTIES PREFIX "") # no "lib" prefix for built binary on Linux
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-target_link_libraries(nba_libretro nba)
+target_link_libraries(nba_libretro nba CXX::Filesystem)

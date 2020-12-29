@@ -33,6 +33,7 @@
 #include "io/audio.h"
 #include "util/common.h"
 #include "util/fshelper.h"
+#include "util/fs.h"
 #include "meta/nba_libretro_defs.h"
 
 static struct retro_log_callback logging;
@@ -247,31 +248,33 @@ extern "C" {
      * libretro callback; Called when a game is to be loaded.
      */
     bool retro_load_game(const struct retro_game_info *info) {
-        std::string biosLookupPaths[2];
+        nba_libretro::fs::path biosLookupPaths[2];
 
         const char *systemDir = nullptr;
         if (environ_cb(RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY, &systemDir)) {
-            biosLookupPaths[0] = nba_libretro::concatPaths(std::string(systemDir), "NanoboyAdvance");
-            nba_libretro::ensureDirExists(biosLookupPaths[0]);
+            nba_libretro::fs::path path = nba_libretro::fs::path(systemDir) / "NanoboyAdvance";
+            biosLookupPaths[0] = path;
+            nba_libretro::ensureDirExists(path);
         } else {
-            biosLookupPaths[0] = std::string();
+            biosLookupPaths[0] = nba_libretro::fs::path();
         }
 
         const char *homeFolder = getenv("HOME");
         log_cb(retro_log_level::RETRO_LOG_INFO, "Home folder: %s\n", homeFolder);
         if (homeFolder != nullptr && strlen(homeFolder) > 0) {
-            biosLookupPaths[1] = nba_libretro::concatPaths(std::string(homeFolder), ".NanoboyAdvance");
+            nba_libretro::fs::path path = nba_libretro::fs::path(homeFolder) / ".NanoboyAdvance";
+            biosLookupPaths[1] = path;
             nba_libretro::ensureDirExists(biosLookupPaths[1]);
         } else {
-            biosLookupPaths[1] = std::string();
+            biosLookupPaths[1] = nba_libretro::fs::path();
         }
 
-        std::string biosPath = nba_libretro::findFirstMatchingFile("gba_bios.bin", biosLookupPaths, 2);
+        nba_libretro::fs::path biosPath = nba_libretro::findFirstMatchingFile("gba_bios.bin", biosLookupPaths, 2);
         if (biosPath.empty()) {
             log_cb(retro_log_level::RETRO_LOG_ERROR, "No bios found\n");
             return false;
         }
-        nbaConfig->bios_path = biosPath;
+        nbaConfig->bios_path = biosPath.string();
 
         auto pixel_fmt = RETRO_PIXEL_FORMAT_XRGB8888;
         if (!environ_cb(RETRO_ENVIRONMENT_SET_PIXEL_FORMAT, &pixel_fmt)) {
